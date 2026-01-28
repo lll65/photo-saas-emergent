@@ -213,16 +213,21 @@ const Dashboard = ({ user, setUser }) => {
           </nav>
           
           <div className="flex items-center gap-4">
-            {/* Credits Badge */}
+            {/* Credits Badge - adapté au plan */}
             {user.subscription === "free" ? (
+              <div className="hidden sm:flex items-center gap-2 bg-muted px-4 py-2 rounded-full">
+                <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                <span className="font-medium text-sm">{user.credits}/3</span>
+              </div>
+            ) : user.subscription === "starter" ? (
               <div className="hidden sm:flex items-center gap-2 bg-secondary px-4 py-2 rounded-full">
                 <ImageIcon className="w-4 h-4 text-primary" />
-                <span className="font-medium text-sm">{user.credits} crédits</span>
+                <span className="font-medium text-sm">{user.credits}/30</span>
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-2 bg-accent px-4 py-2 rounded-full">
                 <Sparkles className="w-4 h-4 text-accent-foreground" />
-                <span className="font-medium text-sm text-accent-foreground">Premium</span>
+                <span className="font-medium text-sm text-accent-foreground">Pro</span>
               </div>
             )}
             
@@ -467,24 +472,24 @@ const Dashboard = ({ user, setUser }) => {
               </Card>
             )}
             
-            {/* Credits Info */}
-            {user.subscription === "free" && (
+            {/* Credits Info - adapté au plan */}
+            {user.subscription !== "pro" && (
               <Card className="bg-secondary/50 border-0 rounded-xl p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Crédits restants</p>
                     <p className="text-sm text-muted-foreground">
-                      {user.credits} / 5 ce mois-ci
+                      {user.credits} / {user.subscription === "starter" ? 30 : 3} ce mois
                     </p>
                   </div>
-                  <Progress value={(user.credits / 5) * 100} className="w-24" />
+                  <Progress value={(user.credits / (user.subscription === "starter" ? 30 : 3)) * 100} className="w-24" />
                 </div>
-                {user.credits <= 2 && (
+                {user.credits <= (user.subscription === "starter" ? 5 : 1) && (
                   <Link to="/pricing">
                     <Button 
                       className="w-full mt-4 bg-primary text-white hover:bg-primary/90 rounded-full"
                     >
-                      Passer au Premium
+                      {user.subscription === "free" ? "Passer au Starter (4.99€)" : "Passer au Pro (14.99€)"}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </Link>

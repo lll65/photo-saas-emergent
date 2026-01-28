@@ -51,12 +51,32 @@ const Profile = ({ user, setUser }) => {
     try {
       const response = await fetch(`${API}/user/upgrade`, {
         method: "POST",
-        credentials: "include"
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ plan: "starter" })
       });
       if (response.ok) {
-        toast.success("Bienvenue en Premium ! 🎉");
+        toast.success("Bienvenue sur Starter !");
         fetchProfile();
-        setUser(prev => ({ ...prev, subscription: "premium" }));
+        setUser(prev => ({ ...prev, subscription: "starter", credits: 30 }));
+      }
+    } catch (error) {
+      toast.error("Erreur de connexion");
+    }
+  };
+
+  const handleUpgradeToPro = async () => {
+    try {
+      const response = await fetch(`${API}/user/upgrade`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ plan: "pro" })
+      });
+      if (response.ok) {
+        toast.success("Bienvenue sur Pro !");
+        fetchProfile();
+        setUser(prev => ({ ...prev, subscription: "pro", credits: -1 }));
       }
     } catch (error) {
       toast.error("Erreur de connexion");
@@ -192,7 +212,7 @@ const Profile = ({ user, setUser }) => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="font-semibold">Plan Gratuit</p>
-                  <p className="text-sm text-muted-foreground">5 photos par mois</p>
+                  <p className="text-sm text-muted-foreground">3 photos par mois</p>
                 </div>
                 <div className="text-right">
                   <p className="text-2xl font-bold">{profile?.credits}</p>
@@ -200,15 +220,15 @@ const Profile = ({ user, setUser }) => {
                 </div>
               </div>
               
-              <Progress value={(profile?.credits / 5) * 100} className="h-3 mb-6" />
+              <Progress value={(profile?.credits / 3) * 100} className="h-3 mb-6" />
               
               <div className="bg-secondary/50 rounded-xl p-4 mb-6">
-                <p className="font-medium mb-2">Passe au Premium pour :</p>
+                <p className="font-medium mb-2">Passe au Starter pour :</p>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>✓ Photos illimitées</li>
-                  <li>✓ Traitement prioritaire</li>
+                  <li>✓ 30 photos par mois</li>
                   <li>✓ Sans filigrane</li>
-                  <li>✓ Support prioritaire</li>
+                  <li>✓ Qualité HD 1080p</li>
+                  <li>✓ Historique 30 jours</li>
                 </ul>
               </div>
               
@@ -217,7 +237,43 @@ const Profile = ({ user, setUser }) => {
                 onClick={handleUpgrade}
                 className="w-full bg-primary text-white hover:bg-primary/90 rounded-full py-6 shadow-brutal hover:shadow-brutal-hover hover:translate-y-[2px] transition-all font-bold"
               >
-                Passer au Premium - 9.99€/mois
+                Passer au Starter - 4.99€/mois
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
+          ) : profile?.subscription === "starter" ? (
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="font-semibold flex items-center gap-2">
+                    Plan Starter
+                    <Sparkles className="w-4 h-4 text-primary" />
+                  </p>
+                  <p className="text-sm text-muted-foreground">30 photos par mois</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold">{profile?.credits}</p>
+                  <p className="text-sm text-muted-foreground">crédits restants</p>
+                </div>
+              </div>
+              
+              <Progress value={(profile?.credits / 30) * 100} className="h-3 mb-6" />
+              
+              <div className="bg-secondary/20 rounded-xl p-4 mb-6">
+                <p className="font-medium mb-2">Passe au Pro pour :</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>✓ Photos illimitées</li>
+                  <li>✓ Traitement prioritaire</li>
+                  <li>✓ Qualité 4K</li>
+                  <li>✓ Support prioritaire</li>
+                </ul>
+              </div>
+              
+              <Button
+                onClick={handleUpgradeToPro}
+                className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-full py-6 shadow-brutal hover:shadow-brutal-hover hover:translate-y-[2px] transition-all font-bold"
+              >
+                Passer au Pro - 14.99€/mois
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </div>
@@ -226,7 +282,7 @@ const Profile = ({ user, setUser }) => {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <p className="font-semibold flex items-center gap-2">
-                    Plan Premium
+                    Plan Pro
                     <Crown className="w-4 h-4 text-primary" />
                   </p>
                   <p className="text-sm text-muted-foreground">Photos illimitées</p>
@@ -239,7 +295,7 @@ const Profile = ({ user, setUser }) => {
               
               <div className="bg-accent/20 rounded-xl p-4">
                 <p className="text-sm text-accent-foreground">
-                  🎉 Tu profites de toutes les fonctionnalités Premium !
+                  Tu profites de toutes les fonctionnalités Pro : illimité, prioritaire, 4K !
                 </p>
               </div>
             </div>
