@@ -48,10 +48,17 @@ class User(BaseModel):
     email: str
     name: str
     picture: Optional[str] = None
-    credits: int = 5  # Free monthly credits
-    subscription: str = "free"  # free, premium
+    credits: int = 3  # Free monthly credits (frustrant)
+    subscription: str = "free"  # free, starter, pro
     created_at: datetime
     last_credit_reset: datetime
+
+# Plan limits - justifiés par coûts serveur
+PLAN_LIMITS = {
+    "free": {"credits": 3, "quality": "720p", "priority": False, "watermark": True},
+    "starter": {"credits": 30, "quality": "1080p", "priority": False, "watermark": False},
+    "pro": {"credits": -1, "quality": "4K", "priority": True, "watermark": False}  # -1 = unlimited
+}
 
 class UserSession(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -135,13 +142,14 @@ async def check_and_reset_monthly_credits(user: User) -> User:
         last_reset = last_reset.replace(tzinfo=timezone.utc)
     
     if now.month != last_reset.month or now.year != last_reset.year:
-        # Reset credits for free users
-        if user.subscription == "free":
+        # Reset credits based on plan
+        plan_credits = PLAN_LIMITS.get(user.subscription, PLAN_LIMITS["free"])["credits"]
+        if plan_credits != -1:  # Don't reset unlimited plans
             await db.users.update_one(
                 {"user_id": user.user_id},
-                {"$set": {"credits": 5, "last_credit_reset": now.isoformat()}}
+                {"$set": {"credits": plan_credits, "last_credit_reset": now.isoformat()}}
             )
-            user.credits = 5
+            user.credits = plan_credits
             user.last_credit_reset = now
     return user
 
@@ -180,13 +188,13 @@ async def create_session(request: Request, response: Response):
             {"$set": {"name": user_data["name"], "picture": user_data.get("picture")}}
         )
     else:
-        # Create new user with 5 free credits
+        # Create new user with 3 free credits (frustrant mais utile)
         new_user = {
             "user_id": user_id,
             "email": user_data["email"],
             "name": user_data["name"],
             "picture": user_data.get("picture"),
-            "credits": 5,
+            "credits": 3,
             "subscription": "free",
             "created_at": now.isoformat(),
             "last_credit_reset": now.isoformat()
@@ -233,14 +241,23 @@ async def get_current_user_info(user: User = Depends(get_current_user)):
         "created_at": {"$gte": start_of_month.isoformat()}
     })
     
+    # Get plan limits
+    plan_info = PLAN_LIMITS.get(user.subscription, PLAN_LIMITS["free"])
+    
     return {
         "user_id": user.user_id,
         "email": user.email,
         "name": user.name,
         "picture": user.picture,
-        "credits": user.credits if user.subscription == "free" else -1,  # -1 = unlimited
+        "credits": user.credits if plan_info["credits"] != -1 else -1,
+        "max_credits": plan_info["credits"],
         "subscription": user.subscription,
-        "images_this_month": images_count
+        "images_this_month": images_count,
+        "plan_features": {
+            "quality": plan_info["quality"],
+            "priority": plan_info["priority"],
+            "watermark": plan_info["watermark"]
+        }
     }
 
 @api_router.post("/auth/logout")
@@ -260,9 +277,13 @@ async def upload_image(file: UploadFile = File(...), user: User = Depends(get_cu
     """Upload an image for processing"""
     user = await check_and_reset_monthly_credits(user)
     
-    # Check credits for free users
-    if user.subscription == "free" and user.credits <= 0:
-        raise HTTPException(status_code=403, detail="No credits remaining. Upgrade to premium for unlimited access.")
+    # Check credits based on plan
+    plan_info = PLAN_LIMITS.get(user.subscription, PLAN_LIMITS["free"])
+    if plan_info["credits"] != -1 and user.credits <= 0:
+        if user.subscription == "free":
+            raise HTTPException(status_code=403, detail="Plus de crédits ce mois. Passe au Starter pour 30 photos/mois à 4.99€.")
+        else:
+            raise HTTPException(status_code=403, detail="Plus de crédits ce mois. Passe au Pro pour un accès illimité.")
     
     # Validate file type
     allowed_types = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]
@@ -306,9 +327,10 @@ async def process_image(image_id: str, user: User = Depends(get_current_user)):
     """Process an uploaded image (remove background + enhance)"""
     user = await check_and_reset_monthly_credits(user)
     
-    # Check credits
-    if user.subscription == "free" and user.credits <= 0:
-        raise HTTPException(status_code=403, detail="No credits remaining")
+    # Check credits based on plan
+    plan_info = PLAN_LIMITS.get(user.subscription, PLAN_LIMITS["free"])
+    if plan_info["credits"] != -1 and user.credits <= 0:
+        raise HTTPException(status_code=403, detail="Plus de crédits. Upgrade ton plan pour continuer.")
     
     # Get image record
     image_doc = await db.images.find_one({"image_id": image_id, "user_id": user.user_id}, {"_id": 0})
@@ -380,8 +402,9 @@ async def process_image(image_id: str, user: User = Depends(get_current_user)):
             }}
         )
         
-        # Deduct credit for free users
-        if user.subscription == "free":
+        # Deduct credit for non-unlimited plans
+        plan_info = PLAN_LIMITS.get(user.subscription, PLAN_LIMITS["free"])
+        if plan_info["credits"] != -1:
             await db.users.update_one(
                 {"user_id": user.user_id},
                 {"$inc": {"credits": -1}}
@@ -479,25 +502,54 @@ async def get_user_profile(user: User = Depends(get_current_user)):
         "created_at": {"$gte": start_of_month.isoformat()}
     })
     
+    plan_info = PLAN_LIMITS.get(user.subscription, PLAN_LIMITS["free"])
+    
     return {
         "user_id": user.user_id,
         "email": user.email,
         "name": user.name,
         "picture": user.picture,
-        "credits": user.credits if user.subscription == "free" else -1,
+        "credits": user.credits if plan_info["credits"] != -1 else -1,
+        "max_credits": plan_info["credits"],
         "subscription": user.subscription,
         "total_images": total_images,
-        "images_this_month": images_this_month
+        "images_this_month": images_this_month,
+        "plan_features": plan_info
     }
 
+class UpgradeRequest(BaseModel):
+    plan: str = "starter"  # starter or pro
+
 @api_router.post("/user/upgrade")
-async def upgrade_to_premium(user: User = Depends(get_current_user)):
-    """Upgrade user to premium (mock - in production, integrate with Stripe)"""
+async def upgrade_plan(request: Request, user: User = Depends(get_current_user)):
+    """Upgrade user to starter or pro plan (mock - in production, integrate with Stripe)"""
+    try:
+        body = await request.json()
+        plan = body.get("plan", "starter")
+    except:
+        plan = "starter"
+    
+    if plan not in ["starter", "pro"]:
+        raise HTTPException(status_code=400, detail="Invalid plan. Choose 'starter' or 'pro'")
+    
+    plan_info = PLAN_LIMITS[plan]
+    now = datetime.now(timezone.utc)
+    
     await db.users.update_one(
         {"user_id": user.user_id},
-        {"$set": {"subscription": "premium"}}
+        {"$set": {
+            "subscription": plan,
+            "credits": plan_info["credits"] if plan_info["credits"] != -1 else 9999,
+            "last_credit_reset": now.isoformat()
+        }}
     )
-    return {"message": "Upgraded to premium successfully", "subscription": "premium"}
+    
+    return {
+        "message": f"Upgraded to {plan} successfully",
+        "subscription": plan,
+        "credits": plan_info["credits"],
+        "features": plan_info
+    }
 
 @api_router.post("/user/downgrade")
 async def downgrade_to_free(user: User = Depends(get_current_user)):
@@ -505,9 +557,9 @@ async def downgrade_to_free(user: User = Depends(get_current_user)):
     now = datetime.now(timezone.utc)
     await db.users.update_one(
         {"user_id": user.user_id},
-        {"$set": {"subscription": "free", "credits": 5, "last_credit_reset": now.isoformat()}}
+        {"$set": {"subscription": "free", "credits": 3, "last_credit_reset": now.isoformat()}}
     )
-    return {"message": "Downgraded to free plan", "subscription": "free", "credits": 5}
+    return {"message": "Downgraded to free plan", "subscription": "free", "credits": 3}
 
 # ==================== HEALTH CHECK ====================
 
