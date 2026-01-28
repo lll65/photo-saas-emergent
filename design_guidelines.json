@@ -1,0 +1,151 @@
+{
+  "identity": {
+    "name": "E1",
+    "role": "Anti-AI Designer",
+    "principles": [
+      "Fusion over Imitation",
+      "Emotion First",
+      "Content is King",
+      "Zoom In",
+      "Negative Space",
+      "Contrast"
+    ]
+  },
+  "project": {
+    "name": "VintedPro - Resale Photo Optimizer",
+    "type": "SaaS Web App",
+    "theme_strategy": "Light Mode (Soft Utility + Neo-Brutalist Accents)",
+    "emotional_tone": "Effortless, Magical, Trustworthy, Trendy",
+    "target_audience": "Gen Z/Millennial Resellers (Vinted, Depop)"
+  },
+  "typography": {
+    "headings": {
+      "font_family": "Outfit, sans-serif",
+      "weights": ["600", "700"],
+      "tracking": "-0.02em",
+      "usage": "Main headings, Hero text, Feature titles"
+    },
+    "body": {
+      "font_family": "Inter, sans-serif",
+      "weights": ["400", "500"],
+      "usage": "Paragraphs, UI labels, Inputs"
+    },
+    "mono": {
+      "font_family": "JetBrains Mono, monospace",
+      "usage": "Code snippets, Technical details, Credits"
+    },
+    "cdn_imports": [
+      "@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');"
+    ]
+  },
+  "colors": {
+    "palette": {
+      "background": "#FDFBF7",
+      "foreground": "#18181B",
+      "card": "#FFFFFF",
+      "card_foreground": "#18181B",
+      "primary": "#6366F1",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#E0E7FF",
+      "secondary_foreground": "#3730A3",
+      "accent": "#BEF264",
+      "accent_foreground": "#1A2E05",
+      "muted": "#F4F4F5",
+      "muted_foreground": "#71717A",
+      "destructive": "#EF4444",
+      "destructive_foreground": "#FFFFFF",
+      "border": "#E4E4E7",
+      "input": "#E4E4E7",
+      "ring": "#6366F1"
+    },
+    "usage_rules": [
+      "Use 'background' (#FDFBF7) for the main page background to avoid sterile white.",
+      "Use 'primary' (#6366F1) for main CTAs (Upload, Sign Up).",
+      "Use 'accent' (#BEF264 - Acid Lime) for 'Success', 'Ready', or 'Magic' indicators to pop against the purple.",
+      "Use 'card' (#FFFFFF) with heavy shadows for containers."
+    ]
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "card": "4px 4px 0px 0px rgba(24, 24, 27, 1)",
+      "button": "2px 2px 0px 0px rgba(24, 24, 27, 1)",
+      "hover": "1px 1px 0px 0px rgba(24, 24, 27, 1)"
+    },
+    "borders": {
+      "default": "2px solid #18181B",
+      "subtle": "1px solid #E4E4E7"
+    },
+    "radius": {
+      "default": "0.75rem",
+      "button": "9999px"
+    },
+    "textures": [
+      "Subtle noise overlay on background (opacity 0.03)",
+      "Dotted grid pattern in hero background"
+    ]
+  },
+  "layout_strategies": {
+    "spacing": {
+      "container_padding": "p-6 md:p-12",
+      "section_gap": "gap-12 md:gap-24",
+      "internal_gap": "gap-4 md:gap-6"
+    },
+    "grids": {
+      "bento": "grid grid-cols-1 md:grid-cols-3 gap-6",
+      "hero": "grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-primary-foreground hover:translate-y-[2px] hover:shadow-hover transition-all shadow-button rounded-full font-bold px-8 py-4",
+      "secondary": "bg-white text-foreground border-2 border-foreground hover:bg-muted transition-all shadow-button rounded-full font-bold px-8 py-4"
+    },
+    "cards": {
+      "default": "bg-card text-card-foreground border-2 border-foreground rounded-xl shadow-card p-6"
+    },
+    "inputs": {
+      "default": "bg-white border-2 border-input focus:border-primary focus:ring-0 rounded-lg p-3"
+    }
+  },
+  "image_urls": {
+    "hero_before": {
+      "url": "https://images.unsplash.com/photo-1698586252650-f0d15ff0c8da?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Messy pile of clothes on bed - represents the 'Before' state",
+      "category": "demo"
+    },
+    "hero_after_1": {
+      "url": "https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Clean vintage denim flat lay - represents 'After' state",
+      "category": "demo"
+    },
+    "hero_after_2": {
+      "url": "https://images.unsplash.com/photo-1625860191460-10a66c7384fb?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Clean white sneaker product shot - represents 'After' state",
+      "category": "demo"
+    }
+  },
+  "motion": {
+    "transitions": "transition-all duration-200 ease-out",
+    "hover_effects": "hover:-translate-y-1 hover:shadow-lg",
+    "loading": "Use a 'shimmer' effect or a spinning geometric shape, not a standard spinner."
+  },
+  "accessibility": {
+    "contrast": "Ensure text on 'primary' background is white. Ensure text on 'accent' background is dark.",
+    "focus_states": "Visible 2px offset ring on all interactive elements."
+  },
+  "instructions_to_main_agent": [
+    "Implement the 'Neo-Brutalist' shadow style (solid black offset shadows) for all cards and buttons.",
+    "Use the 'Outfit' font for all headings to give a modern, friendly feel.",
+    "The 'Upload Zone' should be a central feature: large, dashed border, interactive hover states.",
+    "Use the provided image URLs for the 'Before/After' slider demo in the Hero section.",
+    "Do NOT use gradients for backgrounds. Use solid colors or subtle patterns.",
+    "Ensure the mobile view is prioritized (large touch targets, stacked grids)."
+  ],
+  "universal_guidelines": [
+    "Avoid 'AI slop' aesthetics (generic gradients, centered text everywhere).",
+    "Use 2-3x more spacing than typical.",
+    "Every interaction needs a micro-animation.",
+    "Use 'sonner' for toasts.",
+    "Use 'lucide-react' for icons."
+  ]
+}
